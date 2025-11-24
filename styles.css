@@ -1,0 +1,121 @@
+body {
+    font-family: 'Montserrat', sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
+    background-color: #12100D;
+}
+
+h1{
+    color: #fff;
+}
+
+.lastPurchaseContainer {
+    display: flex;
+    justify-content: flex-end;
+    margin: 20px;
+}
+
+#lastPurchase {
+    text-align: end;
+    border: 1px solid lightblue;
+    border-radius: 12px;
+    padding: 10px;
+}
+
+#lastPurchase h3 {
+    font-size: 15px;
+    color: lightblue
+}
+
+#movies-container, #selectedShowTime {
+    display: flex;
+    justify-content: center;
+    margin: 0 auto;
+    width: 50%;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+#selectedHorario {
+    margin-bottom: 20px;
+}
+
+#selectedObject{
+    color: #fff;
+    text-align: center;
+    margin: 20px;
+}
+
+#selectedSeats{
+    margin: 0 auto;
+    width: 50%;
+}
+
+.movie-card {
+    display: flex;
+    align-items: center;
+    flex-direction: column;
+    border-radius: 12px;
+    max-width: 230px;
+    background-color: #23211E;
+    justify-content: space-between;
+}
+
+.movie-card h3 {
+    color: white;
+    margin: 10px 0px;
+    text-transform: uppercase;
+    font-size: 14px;
+}
+
+.movie-card-image {
+    width: 100%;
+    height: auto;
+    border-radius: 12px 12px 0 0;
+}
+
+.movie-card-bttn, .select-horario-bttn, .confirm-bttn, .buy-again-bttn{
+    margin: 20px 0px;
+    padding: 10px;
+    border-radius: 8px;
+    background-color: lightblue;
+    border: none;
+    cursor: pointer;
+}
+
+.showtime-card {
+    color: white;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #23211E;
+    border-radius: 12px;
+    text-align: center;
+}
+
+#selectedSeats .seats-card{
+    padding: 20px;
+    margin-top: 10px;
+    background-color: #23211E;
+    border-radius: 12px;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.grid-seats-container{
+    display: flex;
+    gap: 5px;
+}
+
+.seat-bttn{
+    padding: 10px;
+    border: none;
+    background-color: lightblue;
+    cursor: pointer;
+}
+
+.selected-seat {
+    background-color: red;
+    border: none;
+}
