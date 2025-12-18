@@ -1,37 +1,3 @@
-const movies = [
-    {
-        title: "El Viaje de Chihiro",
-        image: "https://www.themoviedb.org/t/p/w1280/laXrmaTRuroArSPfsGlvTbeWxVA.jpg"
-    },
-    {
-        title: "El Señor de los Anillos",
-        image: "https://www.themoviedb.org/t/p/w1280/z632eZtXaw76ZE5mMMGOBXCpm1T.jpg"
-    },
-    {
-        title: "El Padrino",
-        image: "https://www.themoviedb.org/t/p/w1280/ApiEfzSkrqS4m1L5a2GwWXzIiAs.jpg"
-    },
-    {
-        title: "Drácula",
-        image: "https://www.themoviedb.org/t/p/w1280/ff7fyDdtXM2wu9jsm9gOMYtpvOl.jpg"
-    },
-    {
-        title: "Superman",
-        image: "https://www.themoviedb.org/t/p/w1280/fvUJb08yatV2b3NUSwuYdQKYoFd.jpg"
-    },
-    {
-        title: "Depredador",
-        image: "https://www.themoviedb.org/t/p/w1280/jl5Y5p2pbhgRwREWbll2RbciG5Z.jpg"
-    }
-];
-
-const showtimes = [
-    "12:00",
-    "15:00",
-    "18:00",
-    "19:00",
-]
-
 const userSelecction = {
     movie: null,
     showTime: null,
@@ -40,6 +6,97 @@ const userSelecction = {
 };
 
 let screeningRooms = [];
+let moviesIds = [];
+let showtimes = [];
+
+
+async function fetchMoviesIds() {
+    try {
+        const response = await fetch('./json/moviesIds.json');
+        const data = await response.json();
+        moviesIds = data;
+        return data;
+    }catch (error) {
+        console.error('Error fetching movies IDs:', error);
+        return [];
+    }
+}
+
+async function fetchShowTimes() {
+    try {
+        const response = await fetch('./json/showTimes.json');
+        const data = await response.json();
+        showtimes = data;
+        return data;
+    }catch(error) {
+        console.error('Error fetching show times:', error);
+        return [];
+    }
+}
+
+async function fetchMovies(moviesIds) {
+    try{
+        const response = moviesIds.map((id) => 
+            fetch(`https://api.imdbapi.dev/titles/${id}`).then((res) => {
+                return res.json();
+            })
+        ) 
+
+        const data = await Promise.all(response);
+        return data;
+
+    } catch (error) {
+        const card = document.createElement("div");
+        const name = document.createElement("h2");
+        card.className = "card";
+        name.innerText = "Falló el proceso";
+        card.appendChild(name);
+        document.body.appendChild(card);
+
+        console.error('Error fetching movies:', error);
+    }
+}
+
+function createBackButton(text, onClickCallback){
+    const backBttn = document.createElement("button");
+    backBttn.innerText = text;
+    backBttn.classList.add("back-bttn");
+    backBttn.onclick = onClickCallback;
+    return backBttn;
+}
+
+function handleGoBack(){
+    clearSelection();
+    initHome();
+}
+
+async function initHome() {
+    const loader = document.getElementById("loader");
+    
+    try {
+        if(loader){
+            loader.style.display = "block";
+            loader.innerText = "Cargando películas...";
+        }
+
+        await fetchMoviesIds();
+        await fetchShowTimes();
+
+        const movies = await fetchMovies(moviesIds);
+        showMoviesContainer(movies);
+    } catch (error) {
+        console.error('Error initializing home:', error);
+        Swal.fire({
+            title: 'Error',
+            icon: 'error',
+            text: 'Hubo un error al cargar las películas. Por favor, intente nuevamente más tarde.',
+        });
+    } finally {
+        if(loader){
+            loader.style.display = "none";
+        }
+    }
+}
 
 class ScreeningRoom  {
     constructor(id, movie, showTime, capacidad) {
@@ -51,11 +108,20 @@ class ScreeningRoom  {
 }
 
 function loadRoomsFromStorage() {
-    screeningRooms = JSON.parse(localStorage.getItem('salas')) || [];
+    try{
+        screeningRooms = JSON.parse(localStorage.getItem('salas')) || [];
+    }catch (error) {
+        console.error('Error loading rooms from storage:', error);
+        screeningRooms = [];
+    }
 }
 
 function saveRoomsToStorage(rooms) {
-    localStorage.setItem('salas', JSON.stringify(rooms));
+    try{
+        localStorage.setItem('salas', JSON.stringify(rooms));
+    }catch (error) {
+        console.error('Error saving rooms to storage:', error);
+    }
 }
 
 function createScreeningRoom(movie, showTime) {
@@ -69,45 +135,110 @@ function createScreeningRoom(movie, showTime) {
     return room;
 }
 
-function showMoviesContainer() {
-   const moviesContainer = document.getElementById("movies-container");
+function formatRuntime(seconds) {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+        return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+}
+
+function showMoviesContainer(moviesList) {
+    const moviesContainer = document.getElementById("movies-container");
    
-   movies.forEach(movie => {
-       const movieCard = document.createElement("article");
-       movieCard.classList.add("movie-card");
+    moviesList.forEach(movie => {
+            const movieCard = document.createElement("article");
+            movieCard.classList.add("movie-card");
 
-       const image = document.createElement("img");
-       image.classList.add("movie-card-image");
-       image.src = movie.image;
-       image.alt = movie.title
+            const image = document.createElement("img");
+            image.classList.add("movie-card-image");
+            image.src = movie.primaryImage.url;
+            image.alt = movie.primaryTitle
 
-       const title = document.createElement("h3");
-       title.innerText = movie.title;
+            const title = document.createElement("h3");
+            title.innerText = movie.primaryTitle;
 
-       const buyBttn = document.createElement("button");
-       buyBttn.innerText = "Seleccionar Película";
-       buyBttn.classList.add("movie-card-bttn");
+            const time = document.createElement("p");
+            time.classList.add("movie-card-time");
+            time.innerText = formatRuntime(movie.runtimeSeconds);
 
-       buyBttn.onclick = () => {
-           selectMovie(movie.title);
-       };
+            const rating = document.createElement("p");
+            rating.classList.add("movie-card-rating");
+            rating.innerText = `⭐ ${movie.rating.aggregateRating}`;
 
-       movieCard.appendChild(image);
-       movieCard.appendChild(title);
-       movieCard.appendChild(buyBttn);
-       moviesContainer.appendChild(movieCard);
-   });
+            const buyBttn = document.createElement("button");
+            buyBttn.innerText = "Seleccionar Película";
+            buyBttn.classList.add("movie-card-bttn");
+
+            buyBttn.onclick = () => {
+                selectMovie(movie);
+            };
+
+            movieCard.appendChild(image);
+            movieCard.appendChild(title);
+            movieCard.appendChild(time);
+            movieCard.appendChild(rating);
+            movieCard.appendChild(buyBttn);
+            moviesContainer.appendChild(movieCard);
+    });
 }
 
 function selectMovie(movie) {
+
     const selectedMovie = document.getElementById("selectedObject");
     selectedMovie.classList.add("selected-movie");
-    userSelecction.movie = movie;
+    userSelecction.movie = movie.primaryTitle;
+
+    const backBttn = createBackButton("← Volver a Películas", () => handleGoBack());
+    selectedMovie.appendChild(backBttn);
 
     const title = document.createElement("h3");
-    title.innerText = `Película seleccionada: ${movie}`;
+    title.classList.add("selected-movie-title");
+    title.innerText = `Película seleccionada: ${movie.primaryTitle}`;
+
+    const infoContainer = document.createElement("div");
+    infoContainer.classList.add("selected-movie-info-container");
+
+    const plot = document.createElement("p");
+    plot.classList.add("selected-movie-plot");
+    plot.innerText = `Sinopsis: ${movie.plot}`;
+
+    const directors = document.createElement("p");
+    directors.classList.add("selected-movie-directors");
+    directors.innerText =  `Dirigida por: ${movie.directors.map(director => director.displayName).join(', ')}`;
+
+    infoContainer.appendChild(plot);
+    infoContainer.appendChild(directors);
+
+    const starsContainer = document.createElement("div");
+    starsContainer.classList.add("stars-container");
+
+    movie.stars.forEach(star => {
+
+        const starContainer = document.createElement("div");
+        starContainer.classList.add("star-container");
+
+        const starImg = document.createElement("img");
+        const starName = document.createElement("p");
+
+        starImg.src = star.primaryImage.url;
+        starImg.alt = star.displayName;
+        starImg.classList.add("star-image");
+
+        starName.innerText = star.displayName;
+        starName.classList.add("star-name");
+
+        starContainer.appendChild(starImg);
+        starContainer.appendChild(starName);
+
+        starsContainer.appendChild(starContainer);
+    })
 
     selectedMovie.appendChild(title)
+    selectedMovie.appendChild(infoContainer);
+    selectedMovie.appendChild(starsContainer);
 
     hideElements();
     showSchedule();
@@ -116,6 +247,11 @@ function selectMovie(movie) {
 function showSchedule() {
     const selectedShowTime= document.getElementById("selectedShowTime");
     selectedShowTime.classList.add("selected-showtime");
+
+    const showTimeTitle = document.createElement("h2");
+    showTimeTitle.innerText = "Horarios:";
+    showTimeTitle.classList.add("showtime-title");
+    selectedShowTime.appendChild(showTimeTitle);
     
     showtimes.forEach(showTime => {
         const scheduleCard = document.createElement("div");
@@ -152,12 +288,13 @@ function selectSchedule(showTime) {
 
 function selectSeats() {
     const selectedSeatsContainer = document.getElementById("selectedSeats");
-    
+   
     const seatsCard = document.createElement("div");
     seatsCard.classList.add("seats-card");
 
     const title = document.createElement("h3");
     title.innerText = "Selección de Butacas";
+    title.classList.add("seats-card-title");
 
     const currentRoom = createScreeningRoom(userSelecction.movie, userSelecction.showTime);
 
@@ -207,7 +344,14 @@ function showGridSeats(container, currentRoom) {
                 userSelecction.seats = selectedSeats;
                 completePurchase(selectedSeats.length);
             }else{
-                alert("Debe seleccionar al menos 1 butaca");
+                Toastify({
+                    text: "Debe seleccionar al menos una butaca para continuar.",
+                    duration: 3000,
+                    gravity: "top",
+                    style: {
+                        background: "linear-gradient(to right, #4a9eff, #2a6bb6ff)" 
+                    }
+                }).showToast();
             }
         }
 
@@ -222,37 +366,56 @@ function showGridSeats(container, currentRoom) {
 }
 
 function completePurchase(seatsCount) {
-    userSelecction.tickets = seatsCount;
+    try{
+        userSelecction.tickets = seatsCount;
 
-    const currentRoom = createScreeningRoom(userSelecction.movie, userSelecction.showTime);
-    currentRoom.availableSeats -= seatsCount;
-    saveRoomsToStorage(screeningRooms)
+        const currentRoom = createScreeningRoom(userSelecction.movie, userSelecction.showTime);
+        currentRoom.availableSeats -= seatsCount;
+        saveRoomsToStorage(screeningRooms)
 
-    const newPurchase = {
-        movie: userSelecction.movie,
-        showTime: userSelecction.showTime,
-        tickets: userSelecction.tickets,
-        seats: userSelecction.seats
-    };
+        const newPurchase = {
+            movie: userSelecction.movie,
+            showTime: userSelecction.showTime,
+            tickets: userSelecction.tickets,
+            seats: userSelecction.seats
+        };
 
-    const store = JSON.parse(localStorage.getItem('compras')) || [];
-    store.push(newPurchase);
-    localStorage.setItem('compras', JSON.stringify(store));
+        const store = JSON.parse(localStorage.getItem('compras')) || [];
+        store.push(newPurchase);
+        localStorage.setItem('compras', JSON.stringify(store));
 
-    const title = document.createElement("h3");
-    title.innerText = `Compra confirmada para pelicula ${userSelecction.movie} en el horario ${userSelecction.showTime} por ${seatsCount} butacas. ¡Gracias por su compra!`;
+        hideElements();
 
-    const buyAgainBttn = document.createElement("button");
-    buyAgainBttn.innerText = "Realizar otra compra";
-    buyAgainBttn.classList.add("buy-again-bttn");
-    buyAgainBttn.onclick = () => {
-        clearSelection();
-        showMoviesContainer();
+        Swal.fire({
+            title: '¡Compra Confirmada!',
+            html: `
+                <p>Película: <strong>${userSelecction.movie}</strong></p>
+                <p>Horario: <strong>${userSelecction.showTime}</strong></p>
+                <p>Butacas: <strong>${userSelecction.seats.join(', ')}</strong></p>
+                <p>Total: <strong>${seatsCount} entrada(s)</strong></p>
+                `,
+            icon: 'success',
+            confirmButtonText: 'Realizar otra compra',
+            confirmButtonColor: '#4a9eff',
+            background: '#23211E',
+            color: '#fff',
+            backdrop: `
+                    rgba(0, 0, 0, 0.6)
+                    url(https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExeXR3bmo1czZtZzlybjJuaWh0OHV3MTlrYW9jbWtlaWg2Y2J6a2FlZSZlcD12MV9naWZzX3NlYXJjaCZjdD1n/k3CEWZju4vkkBJkDxi/giphy.gif)
+                    right 20px top 20px / 200px 200px
+                    no-repeat
+                `
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    clearSelection();
+                    showPreviousPurchase();
+                    initHome();
+                }
+            });
+    }catch (error) {
+        console.error('Error completing purchase:', error);
     }
-
-    selectedObject.appendChild(title);
-    selectedObject.appendChild(buyAgainBttn);
-    hideElements();
+    
 }
 
 function clearSelection(){
@@ -276,6 +439,9 @@ function hideElements() {
     if(userSelecction.showTime){
         const selectedSchedule = document.getElementById("selectedShowTime");
         selectedSchedule.innerHTML = '';
+        const selectedObject = document.getElementById("selectedObject");
+        selectedObject.innerHTML = '';
+        
     }
 
     if(userSelecction.tickets > 0){
@@ -286,21 +452,32 @@ function hideElements() {
 }
 
 function showPreviousPurchase() {
-    const lastPurchaseDiv = document.getElementById("lastPurchase");
-    const storedPurchases = JSON.parse(localStorage.getItem('compras')) || [];
-    if (storedPurchases.length > 0) {
-        const lastPurchase = storedPurchases[storedPurchases.length - 1];
-        lastPurchaseDiv.innerHTML = `<h3>Última compra: ${lastPurchase.tickets} entradas para "${lastPurchase.movie}" a las ${lastPurchase.showTime}.</h3>`;
-    }else {
-        lastPurchaseDiv.innerHTML = `<h3>No hay compras realizadas aún.</h3>`;
+    try{
+        const storedPurchases = JSON.parse(localStorage.getItem('compras')) || [];
+        if (storedPurchases.length > 0) {
+            const lastPurchase = storedPurchases[storedPurchases.length - 1];
+    
+            Toastify({
+                text: `Última compra: ${lastPurchase.tickets} entradas para "${lastPurchase.movie}" a las ${lastPurchase.showTime}.`,
+                duration: 4000,
+                gravity: "top",
+                close: true,
+                style: {
+                    background: "linear-gradient(to right, #4a9eff, #2a6bb6ff)",
+                    borderRadius: "8px",
+                }
+            }).showToast();
+        }
+    }catch (error) {
+        console.error('Error showing previous purchase:', error);
     }
 }
 
 
 window.addEventListener('DOMContentLoaded', () => {
+    initHome();
     loadRoomsFromStorage();
     showPreviousPurchase();
-    showMoviesContainer();
 });
 
 

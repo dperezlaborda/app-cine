@@ -5,52 +5,6 @@ body {
     background-color: #12100D;
 }
 
-h1{
-    color: #fff;
-}
-
-.lastPurchaseContainer {
-    display: flex;
-    justify-content: flex-end;
-    margin: 20px;
-}
-
-#lastPurchase {
-    text-align: end;
-    border: 1px solid lightblue;
-    border-radius: 12px;
-    padding: 10px;
-}
-
-#lastPurchase h3 {
-    font-size: 15px;
-    color: lightblue
-}
-
-#movies-container, #selectedShowTime {
-    display: flex;
-    justify-content: center;
-    margin: 0 auto;
-    width: 50%;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-
-#selectedHorario {
-    margin-bottom: 20px;
-}
-
-#selectedObject{
-    color: #fff;
-    text-align: center;
-    margin: 20px;
-}
-
-#selectedSeats{
-    margin: 0 auto;
-    width: 50%;
-}
-
 .movie-card {
     display: flex;
     align-items: center;
@@ -59,37 +13,166 @@ h1{
     max-width: 230px;
     background-color: #23211E;
     justify-content: space-between;
+    position: relative;
+}
+
+.movie-card:hover{
+    box-shadow: 0 0 10px rgb(103, 108, 110);
+    transition: box-shadow 0.3s ease-in-out;
 }
 
 .movie-card h3 {
-    color: white;
+    color: #fff;
     margin: 10px 0px;
     text-transform: uppercase;
     font-size: 14px;
+    font-weight: bold;
+}
+
+.movie-card-time{
+    position: absolute;
+    right: 0;
+    border-radius: 10px;
+    background-color: #23211E;
+    padding: 8px;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
 }
 
 .movie-card-image {
     width: 100%;
-    height: auto;
+    height: 364px;
     border-radius: 12px 12px 0 0;
+}
+
+.movie-card-rating{
+    color: #fff;
 }
 
 .movie-card-bttn, .select-horario-bttn, .confirm-bttn, .buy-again-bttn{
     margin: 20px 0px;
     padding: 10px;
     border-radius: 8px;
-    background-color: lightblue;
+    background-color: rgb(182, 182, 182);
     border: none;
     cursor: pointer;
+    color: #161616;
+}
+
+button:hover{
+    background-color: rgb(192, 202, 206);
+    transition: background-color 0.3s ease-in-out;
+}
+
+.selected-movie-title{
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.selected-movie-info-container{
+    display: flex;
+    flex-direction: row;
+    gap: 40px;
+}
+
+.selected-movie-plot{
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: #ddd;
+    width: 60%;
+}
+
+.selected-movie-directors{
+    font-size: 16px;
+    margin-bottom: 20px;
+    color: #ddd;
+}
+
+.stars-container{
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-top: 25px;
+    padding: 20px;
+    background-color: rgba(35, 33, 30, 0.5);
+    border-radius: 12px;
+}
+
+.stars-container::before{
+    content: "Reparto";
+    font-size: 16px;
+    font-weight: 600;
+    color: #fff;
+    margin-bottom: 10px;
+}
+
+.star-container{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid rgba(215, 211, 212, 0.2);
+    padding: 15px 10px;
+    transition: background-color 0.3s ease;
+}
+
+.star-container:last-child {
+    border-bottom: none;
+}
+
+.star-container:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+}
+
+.star-image{
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.star-name {
+    font-size: 18px;
+    font-weight: 500;
+    color: #fff;
+}
+
+.showtime-title{
+    color: #fff;
+    font-size: 22px;
+    font-weight: 600;
 }
 
 .showtime-card {
-    color: white;
-    padding: 10px;
-    margin-top: 10px;
-    background-color: #23211E;
+    color: #fff;
+    padding: 14px;
+    background: linear-gradient(135deg, #2a2826 0%, #1f1d1b 100%);
     border-radius: 12px;
     text-align: center;
+    border: 2px solid transparent;
+    transition: all 0.3s ease;
+    min-width: 140px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 10px
+}
+
+.showtime-card:hover {
+    box-shadow: 0 0 10px rgb(103, 108, 110);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.showtime-card h3 {
+    font-size: 32px;
+    font-weight: 700;
+    color: #4a9eff;
+    letter-spacing: 1px;
 }
 
 #selectedSeats .seats-card{
@@ -101,6 +184,13 @@ h1{
     display: flex;
     flex-direction: column;
     align-items: center;
+    gap: 20px;
+}
+
+.seats-card-title{
+    color: #fff;
+    font-size: 22px;
+    font-weight: 600;
 }
 
 .grid-seats-container{
@@ -111,11 +201,23 @@ h1{
 .seat-bttn{
     padding: 10px;
     border: none;
-    background-color: lightblue;
+    background-color: #4a9eff;
     cursor: pointer;
+    border-radius: 8px;
+    width: 50px;
 }
 
 .selected-seat {
     background-color: red;
     border: none;
+}
+
+.back-bttn{
+    margin-bottom: 20px;
+    cursor: pointer;
+}
+
+.back-bttn:hover{
+    text-decoration: underline;
+    background-color: transparent;
 }
